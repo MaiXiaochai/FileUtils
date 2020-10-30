@@ -82,14 +82,14 @@ class FileUtils:
         return dir_path
 
     @classmethod
-    def unzip(cls, zip_path: str, dest_dir: str = './'):
-        """解压zip压缩文件到 dest目录"""
+    def unzip(cls, zip_path: str, dst_dir: str = './'):
+        """解压zip压缩文件到 dst目录"""
         with ZipFile(zip_path, 'r') as f:
             files = f.namelist()
             file_length = len(files)
 
             for no, i in enumerate(files, 1):
-                f.extract(i, dest_dir)
+                f.extract(i, dst_dir)
                 cls.__progress_bar(no, file_length, zip_path)
 
     @classmethod
