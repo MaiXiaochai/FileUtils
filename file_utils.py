@@ -8,10 +8,10 @@
 @CreatedOn  : 2020/10/30 19:26
 --------------------------------------
 """
-
+from time import time
 from os import makedirs, listdir, remove
-from os.path import isdir, splitext, exists, join
-from shutil import copy, move
+from os.path import isdir, splitext, exists, join as path_join, getctime
+from shutil import copy, move, rmtree
 from zipfile import ZipFile
 
 
@@ -21,7 +21,7 @@ class FileUtils:
     @classmethod
     def paths_join(cls, a: str, *paths: str):
         """路径拼接"""
-        return cls.trans_path(join(a, *paths))
+        return path_join(a, *paths)
 
     @staticmethod
     def exists(path: str) -> bool:
@@ -70,20 +70,8 @@ class FileUtils:
             remove(file)
 
     @classmethod
-    def trans_path(cls, dir_path: str) -> str:
-        """路径转换, '\\'=>'/'"""
-        slash = '/'
-        if '\\' in dir_path:
-            dir_path = dir_path.replace('\\', slash)
-
-        if not ('.' in dir_path or dir_path.endswith(slash)):
-            dir_path = dir_path + slash
-
-        return dir_path
-
-    @classmethod
     def unzip(cls, zip_path: str, dst_dir: str = './'):
-        """解压zip压缩文件到 dst目录"""
+        """解压单个zip压缩文件到 dst目录"""
         with ZipFile(zip_path, 'r') as f:
             files = f.namelist()
             file_length = len(files)
@@ -132,28 +120,26 @@ class FileUtils:
             return True
 
     @classmethod
-    def list_paths(cls, dir_path, depth=0, suffix=None, key_str=None):
+    def list_paths(cls, dir_path: str, depth: int = 0, suffix=None, key_str: str = None):
         """
         1) Generator。
-        2) 遍历 dir_path 目录下文件的路径。
+        2) 遍历 dir_path 目录下的文件的路径。
         3) 注意：这里的路径使用'/'。
         :param dir_path:    str     要遍历的目录路径
         :param depth:       int     扫描的深度 0:当前目录，1：当前目录的下一级目录
-        :param suffix:      str     文件后缀，如 ".py" 或者 "py"
-        :param key_str:     str     路径中含的特定字符，None,表示没有特定字符限制
+        :param suffix:      str     返回的路径中包含特定后缀，如 ".py" 或者 "py"，默认None，没有后缀限制
+        :param key_str:     str     返回的路径中包含特定的关键词
         """
 
         # 设定当前目录的表示值
         current_dir_level = 0
-
-        dir_path = dir_path if dir_path.endswith("/") else dir_path + "/"
 
         if suffix:
             if not suffix.startswith('.'):
                 suffix = '.' + suffix
 
         for _path in listdir(dir_path):
-            tmp_path = dir_path + _path
+            tmp_path = path_join(dir_path, _path)
 
             if isdir(tmp_path):
                 if current_dir_level < depth:
@@ -176,9 +162,28 @@ class FileUtils:
                 if all(found):
                     yield tmp_path
 
+    @staticmethod
+    def clean_expiry_files_dirs(dir_path, expiry_days: int or float):
+
+        """
+            根据创建时间，清理 dir_path下超期的文件和文件夹。expiry_days默认为None，不清理
+        """
+        if expiry_days < 0:
+            return
+
+        current_date_seconds = time()
+        expiry_seconds = expiry_days * 24 * 60 ** 2
+
+        for i in listdir(dir_path):
+            path_ = path_join(dir_path, i)
+            create_date_seconds = getctime(path_)
+
+            if current_date_seconds - create_date_seconds > expiry_seconds:
+                rmtree(path_)
+                print(f"path: {path_}, deleted.")
+
 
 def demo():
-    from datetime import datetime, timedelta
     test_path = './'
     depth = 0  # 当前目录
     suffix = "zip"  # 搜索后缀为"py"的文件
