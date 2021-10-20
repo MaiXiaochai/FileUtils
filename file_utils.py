@@ -10,7 +10,7 @@
 """
 from time import time
 from os import makedirs, listdir, remove
-from os.path import isdir, splitext, exists, join as path_join, getctime
+from os.path import isdir, splitext, exists, join as path_join, getctime, getsize
 from shutil import copy, move, rmtree
 from zipfile import ZipFile
 
@@ -181,6 +181,12 @@ class FileUtils:
             if current_date_seconds - create_date_seconds > expiry_seconds:
                 rmtree(path_)
                 print(f"path: {path_}, deleted.")
+
+    @staticmethod
+    def get_file_size(file_path: str) -> float:
+        """获取文件大小，单位：MB"""
+
+        return round(getsize(file_path) / 1024 ** 2, 2)
 
 
 def demo():
