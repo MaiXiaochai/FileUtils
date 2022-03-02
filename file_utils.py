@@ -192,7 +192,7 @@ class FileUtils:
 def demo():
     test_path = './'
     depth = 0  # 当前目录
-    suffix = "zip"  # 搜索后缀为"py"的文件
+    suffix = "zip"  # 搜索后缀为"zip"的文件
     key_str = '_'
     res = FileUtils.list_paths(test_path, depth=depth, suffix=suffix, key_str=key_str)
     for i in res:
